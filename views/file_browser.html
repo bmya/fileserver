@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navegador de Archivos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background-color: #212529; }
+        .list-group-item { background-color: #2b3035; border-color: rgba(255, 255, 255, 0.1); }
+        .list-group-item a { text-decoration: none; color: #f8f9fa; }
+        .list-group-item:hover { background-color: #343a40; }
+        .upload-card { background-color: #2b3035; }
+    </style>
+</head>
+<body>
+    <header class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <!-- IF_LOGO -->
+                <img src="{{logo_path}}" alt="Logo" style="height: 40px; margin-right: 15px;">
+                <!-- END_IF_LOGO -->
+                <h2 class="mb-0 text-body-secondary">{{app_title}}</h2>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-check-fill"></i> {{username}}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                    <li><a class="dropdown-item" href="/logout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                </ul>
+            </div>
+        </div>
+        <hr>
+    </header>
+
+    <main class="container mt-4 mb-5">
+        <!-- Seccion de subida de archivos (condicional) -->
+        <!-- IF_WRITE_PERMISSION -->
+        <div class="card shadow-sm mb-4 upload-card">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-upload"></i> Subir Archivo al Directorio Actual</h5>
+                <form id="uploadForm" action="{{current_path}}" method="post" enctype="multipart/form-data">
+                    <div class="input-group">
+                        <input type="file" class="form-control" name="file" id="fileInput" required>
+                        <button class="btn btn-primary" type="submit">Subir</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- END_IF_WRITE_PERMISSION -->
+
+        <div class="card shadow-lg">
+            <div class="card-header">
+                <p class="text-body-secondary mb-0">Contenido del directorio <code>{{current_path}}</code>:</p>
+            </div>
+            <div class="card-body">
+                <ul class="list-group" id="file-list">
+                    <!-- FILE_LIST_PLACEHOLDER -->
+                </ul>
+            </div>
+            <div class="card-footer text-center text-muted">
+                <small>Mini Webserver MVC</small>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function deleteFile(filePath, element) {
+            if (!confirm(`¿Estás seguro de que quieres eliminar "${filePath}"?`)) {
+                return;
+            }
+            fetch(filePath, { method: 'DELETE' })
+                .then(response => {
+                    if (response.ok) {
+                        element.closest('li').remove();
+                    } else {
+                        alert('Error al eliminar el archivo.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error de red al intentar eliminar el archivo.');
+                });
+        }
+    </script>
+</body>
+</html>

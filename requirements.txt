@@ -1,0 +1,2 @@
+# No se requieren dependencias externas
+# El proyecto funciona completamente con las bibliotecas estándar de Python 3.7+

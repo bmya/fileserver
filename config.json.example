@@ -1,0 +1,8 @@
+{
+    "app_title": "Mi Servidor de Archivos",
+    "file_restrictions": {
+        "mode": "allow",
+        "extensions": [
+            ".txt",
+            ".pdf",
+... (4 lines left)

@@ -1,0 +1,10 @@
+{
+    "admin": {
+        "password": "supersecret_admin_pass",
+        "permissions": ["read", "write", "delete"]
+    },
+    "viewer": {
+        "password": "viewer_pass",
+        "permissions": ["read"]
+    }
+}

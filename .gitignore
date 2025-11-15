@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.DS_Store
+# Environment variables
+.env
+
+# Configuration files (actual files should not be committed)
+users.json
+config.json
+
+# User-uploaded files
+public_files/
+*.pdf
+
+# Virtual environment
+venv/

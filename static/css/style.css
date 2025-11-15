@@ -1,0 +1,4 @@
+/* Opcional: para asegurar que el fondo sea oscuro si el tema de Bootstrap no lo cubre todo */
+body {
+    background-color: #212529;
+}
