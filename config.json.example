@@ -1,8 +1,15 @@
 {
     "app_title": "Mi Servidor de Archivos",
+    "port": 8000,
+    "max_file_size_mb": 3000,
     "file_restrictions": {
         "mode": "allow",
         "extensions": [
             ".txt",
             ".pdf",
-... (4 lines left)
+            ".jpg",
+            ".png",
+            ".zip"
+        ]
+    }
+}

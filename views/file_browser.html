@@ -8,10 +8,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         body { background-color: #212529; }
-        .list-group-item { background-color: #2b3035; border-color: rgba(255, 255, 255, 0.1); }
-        .list-group-item a { text-decoration: none; color: #f8f9fa; }
-        .list-group-item:hover { background-color: #343a40; }
         .upload-card { background-color: #2b3035; }
+        .table { color: #f8f9fa; }
+        .table > tbody > tr > td a { text-decoration: none; color: #f8f9fa; }
+        .table > tbody > tr:hover { background-color: #343a40; }
     </style>
 </head>
 <body>
@@ -55,10 +55,22 @@
             <div class="card-header">
                 <p class="text-body-secondary mb-0">Contenido del directorio <code>{{current_path}}</code>:</p>
             </div>
-            <div class="card-body">
-                <ul class="list-group" id="file-list">
-                    <!-- FILE_LIST_PLACEHOLDER -->
-                </ul>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th style="width: 120px;">Tamaño</th>
+                                <th style="width: 160px;">Fecha</th>
+                                <th style="width: 80px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="file-list">
+                            <!-- FILE_LIST_PLACEHOLDER -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <div class="card-footer text-center text-muted">
                 <small>Mini Webserver MVC</small>
@@ -75,7 +87,7 @@
             fetch(filePath, { method: 'DELETE' })
                 .then(response => {
                     if (response.ok) {
-                        element.closest('li').remove();
+                        element.closest('tr').remove();
                     } else {
                         alert('Error al eliminar el archivo.');
                     }

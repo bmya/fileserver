@@ -6,7 +6,12 @@ This project is a secure, session-based file server built with Python's standard
 
 ### 1. Configuration
 - **`users.json`**: Defines all users, their passwords, and a list of their permissions (`read`, `write`, `delete`). This file is critical for the application to run. An example file `users.json.example` is provided.
-- **`config.json`**: Contains application-level settings, specifically the file type restrictions for uploads, the application title, and the server port. It defines a `mode` (`allow` or `deny`) and a list of file `extensions`. An example file `config.json.example` is provided.
+- **`config.json`**: Contains application-level settings:
+  - `app_title`: Application title displayed in the interface
+  - `port`: Server port (defaults to 8000)
+  - `max_file_size_mb`: Maximum file upload size in megabytes (defaults to 3000 MB / 3 GB)
+  - `file_restrictions`: File type restrictions with `mode` (`allow` or `deny`) and a list of file `extensions`
+  - An example file `config.json.example` is provided.
 - **`.gitignore`**: Excludes configuration files, user-uploaded files (`public_files/`), and Python artifacts from version control.
 
 ### 2. Architecture (MVC)
@@ -24,12 +29,20 @@ This project is a secure, session-based file server built with Python's standard
 
 - **Controller (`controllers/handler.py`)**:
     - This is the core of the application, containing the `AuthMVC_Handler` class.
-    - **Configuration Loading**: It loads `app_title` and `file_restrictions` directly from `config.json`. The public files directory is hardcoded to `public_files/`.
+    - **Configuration Loading**: It loads `app_title`, `file_restrictions`, and `max_file_size_mb` directly from `config.json`. The public files directory is hardcoded to `public_files/`.
     - **Routing**: It inspects `self.path` to route `GET` and `POST` requests to the appropriate logic (e.g., `/login`, `/logout`, static files, or file operations).
     - **Session Handling**: It reads session cookies on incoming requests to identify the user and sets cookies on login/logout. It redirects unauthenticated users to `/login`.
     - **Permission Checks**: Before performing any action (`render_directory_listing`, `do_POST`, `do_DELETE`), it calls the `user_manager` to verify if the logged-in user has the required permissions.
     - **Dynamic Rendering**: The `render_view` method reads HTML templates, injects dynamic data (like the file list or username), and conditionally renders UI blocks based on permissions before sending the final HTML to the client.
-    - **File Operations**: Implements `do_POST` for file uploads (validating against `config.json`) and `do_DELETE` for file deletion.
+    - **File Operations**:
+        - Implements `do_POST` for file uploads with validation against `config.json` (file type restrictions and maximum file size)
+        - File size is validated before reading the upload body, returning HTTP 413 if the file exceeds `max_file_size_mb`
+        - Implements `do_DELETE` for file deletion
+    - **Directory Listing**: The `render_directory_listing` method displays files in a table format showing:
+        - File/folder name with appropriate icons
+        - File size (formatted as B, KB, MB, or GB; directories show "-")
+        - Modification date and time (YYYY-MM-DD HH:MM format)
+        - Delete button (if user has delete permission)
 
 ### 3. Static & Public Files
 - **`static/`**: Contains static assets for the web application itself, like custom CSS and the application logo.

@@ -24,10 +24,12 @@ try:
         CONFIG = json.load(f)
     APP_TITLE = CONFIG.get('app_title', 'File Server')
     FILE_RESTRICTIONS = CONFIG.get('file_restrictions', {})
+    MAX_FILE_SIZE_MB = CONFIG.get('max_file_size_mb', 3000)  # 3GB por defecto
 except FileNotFoundError:
     # Valores por defecto si no hay config.json
     APP_TITLE = "File Server"
     FILE_RESTRICTIONS = {}
+    MAX_FILE_SIZE_MB = 3000
 
 def find_logo():
     """Busca un archivo de logo en static/img/ y devuelve su ruta web."""
@@ -137,6 +139,8 @@ class AuthMVC_Handler(http.server.SimpleHTTPRequestHandler):
 
     def render_directory_listing(self, dir_path, username):
         try:
+            from datetime import datetime
+
             file_list_html = ""
             url_path = self.path
             fs_rel_path = os.path.relpath(dir_path, PUBLIC_FILES_PATH)
@@ -144,24 +148,50 @@ class AuthMVC_Handler(http.server.SimpleHTTPRequestHandler):
 
             if current_path_display != '/':
                 parent_path = '/'.join(url_path.strip('/').split('/')[:-1])
-                file_list_html += f'<li class="list-group-item"><a href="/{parent_path}"><i class="bi bi-arrow-left-circle"></i> Volver</a></li>'
+                file_list_html += f'''
+                <tr>
+                    <td colspan="4"><a href="/{parent_path}"><i class="bi bi-arrow-left-circle"></i> Volver</a></td>
+                </tr>'''
 
             for item_name in sorted(os.listdir(dir_path)):
                 full_fs_path = os.path.join(dir_path, item_name)
                 item_url = os.path.join(url_path, item_name).replace(os.sep, '/')
-                
-                icon = "bi-folder-fill text-warning" if os.path.isdir(full_fs_path) else "bi-file-earmark"
-                
+
+                # Obtener información del archivo
+                stat_info = os.stat(full_fs_path)
+
+                if os.path.isdir(full_fs_path):
+                    icon = "bi-folder-fill text-warning"
+                    size_display = "-"
+                else:
+                    icon = "bi-file-earmark"
+                    # Formatear tamaño
+                    size_bytes = stat_info.st_size
+                    if size_bytes < 1024:
+                        size_display = f"{size_bytes} B"
+                    elif size_bytes < 1024 * 1024:
+                        size_display = f"{size_bytes / 1024:.1f} KB"
+                    elif size_bytes < 1024 * 1024 * 1024:
+                        size_display = f"{size_bytes / (1024 * 1024):.1f} MB"
+                    else:
+                        size_display = f"{size_bytes / (1024 * 1024 * 1024):.2f} GB"
+
+                # Formatear fecha
+                mtime = datetime.fromtimestamp(stat_info.st_mtime)
+                date_display = mtime.strftime("%Y-%m-%d %H:%M")
+
                 delete_button = ""
                 if user_manager.has_permission(username, 'delete') and os.path.isfile(full_fs_path):
                     delete_button = f'<button class="btn btn-sm btn-outline-danger" onclick="deleteFile(\'{item_url}\', this)"><i class="bi bi-trash-fill"></i></button>'
 
                 file_list_html += f'''
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <a href="{item_url}"><i class="bi {icon}"></i> {html.escape(item_name)}</a>
-                    {delete_button}
-                </li>'''
-            
+                <tr>
+                    <td><a href="{item_url}"><i class="bi {icon}"></i> {html.escape(item_name)}</a></td>
+                    <td>{size_display}</td>
+                    <td>{date_display}</td>
+                    <td class="text-end">{delete_button}</td>
+                </tr>'''
+
             context = {
                 "FILE_LIST_PLACEHOLDER": file_list_html,
                 "current_path": html.escape(current_path_display),
@@ -230,6 +260,13 @@ class AuthMVC_Handler(http.server.SimpleHTTPRequestHandler):
 
         # Leer el contenido completo del body
         content_length = int(self.headers.get('Content-Length', 0))
+
+        # Validar tamaño del archivo
+        max_size_bytes = MAX_FILE_SIZE_MB * 1024 * 1024
+        if content_length > max_size_bytes:
+            self.send_error(413, f"Archivo demasiado grande. Tamaño máximo: {MAX_FILE_SIZE_MB} MB")
+            return
+
         body = self.rfile.read(content_length)
 
         # Crear un mensaje HTTP con los headers y body
